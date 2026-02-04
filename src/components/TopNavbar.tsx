@@ -18,6 +18,7 @@ export default function TopNavbar() {
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         ...(isAdmin ? [
             { name: 'All Projects', href: '/admin/projects', icon: Briefcase },
+            { name: 'Employees', href: '/admin/employees', icon: Users },
         ] : []),
         ...(isRecruiter ? [
             { name: 'My Projects', href: '/dashboard', icon: Briefcase },
