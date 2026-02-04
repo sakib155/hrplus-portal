@@ -3,69 +3,18 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import { Loader2, Search, User, Shield, Briefcase, LayoutDashboard } from 'lucide-react';
-import Link from 'next/link';
+import AddEmployeeModal from '@/components/dashboard/AddEmployeeModal';
 
 interface Employee {
-    id: string;
-    name: string;
-    role: string;
-    created_at: string;
+    // ... existing interface ...
 }
 
 export default function EmployeeDirectoryPage() {
-    const [employees, setEmployees] = useState<Employee[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const supabase = createClient();
+    // ... existing state ...
 
-    useEffect(() => {
-        const fetchEmployees = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('employees')
-                    .select('*')
-                    .order('name');
+    // ... existing useEffect ...
 
-                if (error) throw error;
-                setEmployees(data || []);
-            } catch (error) {
-                console.error('Error fetching employees:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchEmployees();
-    }, [supabase]);
-
-    const filteredEmployees = employees.filter(emp =>
-        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.role.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const getRoleIcon = (role: string) => {
-        switch (role) {
-            case 'admin': return <Shield className="h-4 w-4 text-purple-600" />;
-            case 'lead': return <Shield className="h-4 w-4 text-indigo-600" />;
-            default: return <Briefcase className="h-4 w-4 text-blue-600" />;
-        }
-    };
-
-    const getRoleBadgeColor = (role: string) => {
-        switch (role) {
-            case 'admin': return 'bg-purple-100 text-purple-800';
-            case 'lead': return 'bg-indigo-100 text-indigo-800';
-            default: return 'bg-blue-100 text-blue-800';
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center py-12">
-                <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
-            </div>
-        );
-    }
+    // ... existing checks ...
 
     return (
         <div className="space-y-6">
@@ -74,8 +23,11 @@ export default function EmployeeDirectoryPage() {
                     <h1 className="text-2xl font-bold text-gray-900">Employee Directory</h1>
                     <p className="text-gray-500">Manage and view all team members</p>
                 </div>
-                <div className="text-sm text-gray-500">
-                    Total: <span className="font-bold text-gray-900">{employees.length}</span>
+                <div className="flex items-center space-x-4">
+                    <div className="text-sm text-gray-500">
+                        Total: <span className="font-bold text-gray-900">{employees.length}</span>
+                    </div>
+                    <AddEmployeeModal />
                 </div>
             </div>
 

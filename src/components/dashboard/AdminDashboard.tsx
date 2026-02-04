@@ -1,7 +1,6 @@
 'use client';
 
 import RecruiterPerformance from './RecruiterPerformance';
-import AddEmployeeModal from './AddEmployeeModal';
 import AdminKPIs from './AdminKPIs';
 import RevenueChart from './RevenueChart';
 
@@ -10,7 +9,6 @@ export default function AdminDashboard() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                <AddEmployeeModal />
             </div>
 
             {/* KPI Cards */}
