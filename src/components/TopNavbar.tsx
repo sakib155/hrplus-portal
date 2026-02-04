@@ -73,6 +73,13 @@ export default function TopNavbar() {
                                 <span className="text-sm font-medium text-gray-900">{user?.name}</span>
                                 <span className="text-xs text-gray-500 capitalize">{user?.role}</span>
                             </div>
+                            <Link
+                                href="/profile"
+                                className="p-2 rounded-full text-gray-400 hover:text-blue-500 hover:bg-gray-100 transition"
+                                title="Profile & Settings"
+                            >
+                                <User className="h-5 w-5" />
+                            </Link>
                             <button
                                 onClick={handleSignOut}
                                 className="p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-gray-100 transition"
@@ -134,6 +141,13 @@ export default function TopNavbar() {
                             </div>
                         </div>
                         <div className="mt-3 space-y-1">
+                            <Link
+                                href="/profile"
+                                onClick={() => setIsMenuOpen(false)}
+                                className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                            >
+                                Profile & Settings
+                            </Link>
                             <button
                                 onClick={handleSignOut}
                                 className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
