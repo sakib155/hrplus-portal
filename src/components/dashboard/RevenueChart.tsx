@@ -20,6 +20,7 @@ interface RevenueData {
 }
 
 export default function RevenueChart() {
+    // Revenue Chart Component - Visualizes Realized vs Potential Revenue
     const [data, setData] = useState<RevenueData[]>([]);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
