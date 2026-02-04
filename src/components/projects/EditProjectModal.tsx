@@ -33,7 +33,7 @@ export default function EditProjectModal({ project, onUpdate }: EditProjectModal
     const supabase = createClient();
 
     const { register, handleSubmit, formState: { errors }, reset } = useForm<ProjectFormValues>({
-        resolver: zodResolver(projectSchema),
+        resolver: zodResolver(projectSchema) as any,
         defaultValues: {
             client_name: project.client_name,
             position_title: project.position_title,

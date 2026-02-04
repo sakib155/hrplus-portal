@@ -26,7 +26,7 @@ export default function CreateProjectForm({ onSuccess }: { onSuccess?: () => voi
     const supabase = createClient();
 
     const { register, handleSubmit, formState: { errors }, reset } = useForm<ProjectFormValues>({
-        resolver: zodResolver(projectSchema),
+        resolver: zodResolver(projectSchema) as any,
         defaultValues: {
             openings: 1,
             revenue_amount: 0,

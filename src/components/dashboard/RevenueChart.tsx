@@ -47,7 +47,7 @@ export default function RevenueChart() {
                 let potential = 0;
                 let lost = 0;
 
-                projects.forEach(project => {
+                projects.forEach((project: any) => {
                     const revenue = Number(project.revenue_amount) || 0;
                     const hasJoinedCandidate = project.candidates?.some((c: any) => c.status === 'Joined');
 
@@ -98,7 +98,7 @@ export default function RevenueChart() {
                         <XAxis dataKey="name" />
                         <YAxis tickFormatter={(value) => `৳${value}`} />
                         <Tooltip
-                            formatter={(value: number) => [formatCurrency(value), 'Amount']}
+                            formatter={(value: any) => [formatCurrency(Number(value || 0)), 'Amount']}
                             cursor={{ fill: 'transparent' }}
                         />
                         <Bar
