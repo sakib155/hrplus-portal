@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import { format } from 'date-fns';
-import { ExternalLink, Edit2, Lock } from 'lucide-react';
+import { ExternalLink, Edit2, Lock, UserPlus, X } from 'lucide-react';
 import CandidateStatusModal from './CandidateStatusModal';
+import AddCandidateForm from './AddCandidateForm';
 import { useAuth } from '@/components/AuthProvider';
 
 interface Candidate {
@@ -26,6 +27,7 @@ export default function GlobalCandidateList() {
     const [candidates, setCandidates] = useState<Candidate[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const supabase = createClient();
 
     const fetchCandidates = async () => {
@@ -79,7 +81,16 @@ export default function GlobalCandidateList() {
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <h2 className="text-lg font-bold text-gray-900">All Candidates</h2>
+                <div className="flex items-center space-x-4">
+                    <h2 className="text-lg font-bold text-gray-900">All Candidates</h2>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="flex items-center space-x-1 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition text-sm"
+                    >
+                        <UserPlus className="h-4 w-4" />
+                        <span>Add Candidate</span>
+                    </button>
+                </div>
 
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <input
@@ -168,6 +179,25 @@ export default function GlobalCandidateList() {
                         onClose={() => setSelectedCandidate(null)}
                         onUpdate={fetchCandidates}
                     />
+                )}
+
+                {isAddModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-bold text-gray-900">Add New Candidate</h3>
+                                <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                            <AddCandidateForm
+                                onSuccess={() => {
+                                    setIsAddModalOpen(false);
+                                    fetchCandidates();
+                                }}
+                            />
+                        </div>
+                    </div>
                 )}
             </div>
         </div>

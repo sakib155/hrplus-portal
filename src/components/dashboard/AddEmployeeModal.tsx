@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { Loader2, UserPlus, X } from 'lucide-react';
 
-export default function AddEmployeeModal() {
+interface AddEmployeeModalProps {
+    onSuccess?: () => void;
+}
+
+export default function AddEmployeeModal({ onSuccess }: AddEmployeeModalProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
@@ -34,7 +38,11 @@ export default function AddEmployeeModal() {
             setIsOpen(false);
             setFormData({ name: '', email: '', password: '', role: 'recruiter' });
             // Optionally trigger refresh of list
-            window.location.reload();
+            if (onSuccess) {
+                onSuccess();
+            } else {
+                window.location.reload();
+            }
 
         } catch (error: any) {
             alert(error.message);

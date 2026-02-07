@@ -21,9 +21,16 @@ const candidateSchema = z.object({
 
 type CandidateFormValues = z.infer<typeof candidateSchema>;
 
-export default function AddCandidateForm({ projectId, onSuccess }: { projectId: string; onSuccess: () => void }) {
+interface Project {
+    id: string;
+    project_title: string;
+}
+
+export default function AddCandidateForm({ projectId, onSuccess }: { projectId?: string; onSuccess: () => void }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [selectedProjectId, setSelectedProjectId] = useState<string>(projectId || '');
     const { user } = useAuth();
     const supabase = createClient();
 
@@ -31,8 +38,31 @@ export default function AddCandidateForm({ projectId, onSuccess }: { projectId: 
         resolver: zodResolver(candidateSchema),
     });
 
+    // Fetch projects if projectId is not provided
+    useState(() => {
+        const fetchProjects = async () => {
+            if (!projectId) {
+                const { data, error } = await supabase
+                    .from('projects')
+                    .select('id, project_title')
+                    .eq('status', 'Active')
+                    .order('created_at', { ascending: false });
+
+                if (!error && data) {
+                    setProjects(data);
+                }
+            }
+        };
+        fetchProjects();
+    });
+
     const onSubmit = async (data: CandidateFormValues) => {
         if (!user) return;
+        if (!selectedProjectId) {
+            setError('Please select a project');
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
@@ -40,7 +70,7 @@ export default function AddCandidateForm({ projectId, onSuccess }: { projectId: 
             const { error: insertError } = await supabase
                 .from('candidates')
                 .insert({
-                    project_id: projectId,
+                    project_id: selectedProjectId,
                     recruiter_id: user.id,
                     name: data.name,
                     email: data.email || null,
@@ -55,7 +85,7 @@ export default function AddCandidateForm({ projectId, onSuccess }: { projectId: 
             if (insertError) throw insertError;
 
             // Log Task
-            await logSystemTask(projectId, user.id, 'CANDIDATE_ADDED', `Added candidate ${data.name}`);
+            await logSystemTask(selectedProjectId, user.id, 'CANDIDATE_ADDED', `Added candidate ${data.name}`);
 
             reset();
             onSuccess();
@@ -70,6 +100,25 @@ export default function AddCandidateForm({ projectId, onSuccess }: { projectId: 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && <div className="text-red-500 text-sm">{error}</div>}
+
+            {!projectId && (
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Select Project</label>
+                    <select
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+                        value={selectedProjectId}
+                        onChange={(e) => setSelectedProjectId(e.target.value)}
+                        required
+                    >
+                        <option value="">-- Select Project --</option>
+                        {projects.map((p) => (
+                            <option key={p.id} value={p.id}>
+                                {p.project_title}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
 
             <div>
                 <label className="block text-sm font-medium text-gray-700">Full Name</label>

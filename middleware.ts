@@ -8,6 +8,26 @@ export async function middleware(request: NextRequest) {
         },
     })
 
+    // Check if we have any Supabase cookies to avoid initializing client if not needed
+    // This dramatically improves performance for public pages when not logged in
+    const hasSupabaseCookies = request.cookies.getAll().some(cookie =>
+        cookie.name.startsWith('sb-') || cookie.name.includes('auth')
+    );
+
+    const isAuthRoute = request.nextUrl.pathname.startsWith('/login')
+    const isProtectedRoute =
+        request.nextUrl.pathname.startsWith('/dashboard') ||
+        request.nextUrl.pathname.startsWith('/projects') ||
+        request.nextUrl.pathname.startsWith('/candidates') ||
+        request.nextUrl.pathname.startsWith('/admin')
+
+    if (!hasSupabaseCookies) {
+        if (isProtectedRoute) {
+            return NextResponse.redirect(new URL('/login', request.url))
+        }
+        return response;
+    }
+
     // Check for environment variables to prevent crash
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -42,14 +62,15 @@ export async function middleware(request: NextRequest) {
         }
     )
 
+    // IMPORTANT: specific to Supabase Auth which does not update the cookie in the
+    // request itself, so we need to pass the modified request to the next step.
+
+    // Using getSession() instead of getUser() for performance in Middleware.
+    // getUser() forces a network call which can be very slow (10s+) on some local environments.
+    // Security is enforced by RLS and Server Components, so this optimistic check is acceptable for routing.
     const { data: { session } } = await supabase.auth.getSession()
 
-    const isAuthRoute = request.nextUrl.pathname.startsWith('/login')
-    const isProtectedRoute =
-        request.nextUrl.pathname.startsWith('/dashboard') ||
-        request.nextUrl.pathname.startsWith('/projects') ||
-        request.nextUrl.pathname.startsWith('/candidates')
-
+    // If there's an error (e.g. invalid token), user will be null, so we redirect to login
     if (isProtectedRoute && !session) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
