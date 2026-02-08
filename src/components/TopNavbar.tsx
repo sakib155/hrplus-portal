@@ -10,7 +10,7 @@ import { LogOut, Menu, X, LayoutDashboard, Briefcase, Users, User } from 'lucide
 import NotificationBell from './notifications/NotificationBell';
 
 export default function TopNavbar() {
-    const { user, signOut, isAdmin, isRecruiter } = useAuth();
+    const { user, signOut, isAdmin, isRecruiter, isMarketing, isSales, isSalesLead } = useAuth();
     const pathname = usePathname();
     const router = useRouter();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,9 +20,16 @@ export default function TopNavbar() {
         ...(isAdmin ? [
             { name: 'All Projects', href: '/admin/projects', icon: Briefcase },
             { name: 'Employees', href: '/admin/employees', icon: Users },
+            { name: 'Leads', href: '/leads', icon: Users },
         ] : []),
         ...(isRecruiter ? [
             { name: 'My Projects', href: '/dashboard', icon: Briefcase },
+        ] : []),
+        ...(isMarketing || isSalesLead ? [
+            { name: 'Leads', href: '/dashboard', icon: Users },
+        ] : []),
+        ...(isSales ? [
+            { name: 'My Leads', href: '/dashboard', icon: Users },
         ] : []),
         { name: 'Candidates', href: '/candidates', icon: Users },
     ];

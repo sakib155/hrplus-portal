@@ -16,15 +16,24 @@ interface TaskLog {
     };
 }
 
-export default function RecruiterTaskLog() {
+interface RecruiterTaskLogProps {
+    recruiterId?: string;
+}
+
+export default function RecruiterTaskLog({ recruiterId }: RecruiterTaskLogProps) {
     const [tasks, setTasks] = useState<TaskLog[]>([]);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
 
     const fetchTasks = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+            let targetId = recruiterId;
+
+            if (!targetId) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+                targetId = user.id;
+            }
 
             const { data, error } = await supabase
                 .from('project_logs')
@@ -32,7 +41,7 @@ export default function RecruiterTaskLog() {
                     id, log_date, content, status,
                     projects (project_title)
                 `)
-                .eq('recruiter_id', user.id)
+                .eq('recruiter_id', targetId)
                 .eq('type', 'Task')
                 .in('status', ['Pending', 'Completed']) // Don't show Approved
                 .order('created_at', { ascending: false });
@@ -48,7 +57,7 @@ export default function RecruiterTaskLog() {
 
     useEffect(() => {
         fetchTasks();
-    }, []);
+    }, [recruiterId]);
 
     const markAsDone = async (id: string) => {
         try {
@@ -91,13 +100,15 @@ export default function RecruiterTaskLog() {
                         </div>
 
                         {task.status === 'Pending' ? (
-                            <button
-                                onClick={() => markAsDone(task.id)}
-                                className="flex-shrink-0 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 shadow-sm"
-                            >
-                                <CheckCircle className="h-3 w-3 mr-1.5" />
-                                Mark Done
-                            </button>
+                            !recruiterId && (
+                                <button
+                                    onClick={() => markAsDone(task.id)}
+                                    className="flex-shrink-0 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 shadow-sm"
+                                >
+                                    <CheckCircle className="h-3 w-3 mr-1.5" />
+                                    Mark Done
+                                </button>
+                            )
                         ) : (
                             <div className="flex-shrink-0 flex items-center text-xs font-medium text-orange-600 bg-orange-50 px-3 py-1.5 rounded-md border border-orange-100">
                                 <Clock className="h-3 w-3 mr-1.5" />

@@ -3,9 +3,11 @@
 import { useAuth } from '@/components/AuthProvider';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
 import RecruiterDashboard from '@/components/dashboard/RecruiterDashboard';
+import MarketingDashboard from '@/components/dashboard/MarketingDashboard';
+import SalesDashboard from '@/components/sales/SalesDashboard';
 
 export default function DashboardPage() {
-    const { isAdmin, isRecruiter, loading, user, signOut } = useAuth();
+    const { isAdmin, isRecruiter, isMarketing, isSales, isSalesLead, loading, user, signOut } = useAuth();
 
     if (loading) {
         return <div>Loading...</div>;
@@ -17,6 +19,16 @@ export default function DashboardPage() {
 
     if (isRecruiter) {
         return <RecruiterDashboard />;
+    }
+
+    if (isMarketing) {
+        return <MarketingDashboard />;
+    }
+
+
+
+    if (isSales || isSalesLead) {
+        return <SalesDashboard />;
     }
 
     return (

@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import { format } from 'date-fns';
-import { ExternalLink, Edit2, Lock, UserPlus, X } from 'lucide-react';
+import { ExternalLink, Edit2, Lock, UserPlus, X, Clock } from 'lucide-react';
 import CandidateStatusModal from './CandidateStatusModal';
 import AddCandidateForm from './AddCandidateForm';
 import { useAuth } from '@/components/AuthProvider';
+import FollowUpModal from '../followups/FollowUpModal';
 
 interface Candidate {
     id: string;
@@ -27,6 +28,7 @@ export default function GlobalCandidateList() {
     const [candidates, setCandidates] = useState<Candidate[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+    const [followUpCandidate, setFollowUpCandidate] = useState<Candidate | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const supabase = createClient();
 
@@ -157,6 +159,13 @@ export default function GlobalCandidateList() {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <button
+                                        onClick={() => setFollowUpCandidate(c)}
+                                        className="text-blue-600 hover:text-blue-900 mr-3"
+                                        title="Schedule Follow-up"
+                                    >
+                                        <Clock className="h-4 w-4" />
+                                    </button>
+                                    <button
                                         onClick={() => setSelectedCandidate(c)}
                                         className="text-indigo-600 hover:text-indigo-900"
                                     >
@@ -167,7 +176,7 @@ export default function GlobalCandidateList() {
                         ))}
                         {filteredCandidates.length === 0 && (
                             <tr>
-                                <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">No candidates found.</td>
+                                <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">No candidates found.</td>
                             </tr>
                         )}
                     </tbody>
@@ -178,6 +187,16 @@ export default function GlobalCandidateList() {
                         candidate={selectedCandidate}
                         onClose={() => setSelectedCandidate(null)}
                         onUpdate={fetchCandidates}
+                    />
+                )}
+
+                {followUpCandidate && (
+                    <FollowUpModal
+                        isOpen={!!followUpCandidate}
+                        onClose={() => setFollowUpCandidate(null)}
+                        candidateId={followUpCandidate.id}
+                        candidateName={followUpCandidate.name}
+                        recruiterId={followUpCandidate.recruiter_id || user?.id || ''}
                     />
                 )}
 

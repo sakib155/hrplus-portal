@@ -7,7 +7,7 @@ import { Loader2, User, Lock, Mail, Save } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
-    const { user, role, loading: authLoading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const supabase = createClient();
 
@@ -110,7 +110,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="ml-auto">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-800 text-blue-100">
-                                {role?.toUpperCase() || 'USER'}
+                                {user.role?.toUpperCase() || 'USER'}
                             </span>
                         </div>
                     </div>

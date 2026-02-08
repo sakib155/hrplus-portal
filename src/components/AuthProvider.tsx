@@ -10,6 +10,9 @@ const AuthContext = createContext<AuthState>({
     loading: true,
     isAdmin: false,
     isRecruiter: false,
+    isMarketing: false,
+    isSales: false,
+    isSalesLead: false,
     signOut: async () => { },
 });
 
@@ -84,6 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         isAdmin: user?.role === 'admin' || user?.role === 'lead',
         isRecruiter: user?.role === 'recruiter',
+        isMarketing: user?.role === 'marketing',
+        isSales: user?.role === 'sales',
+        isSalesLead: user?.role === 'sales_lead',
         signOut,
     };
 

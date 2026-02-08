@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import { Loader2, Search, User, Shield, Briefcase, LayoutDashboard, Trash2 } from 'lucide-react';
 import AddEmployeeModal from '@/components/dashboard/AddEmployeeModal';
+import BulkAddEmployeesModal from '@/components/dashboard/BulkAddEmployeesModal';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { deleteUser } from '@/app/actions/adminActions';
@@ -100,9 +101,11 @@ export default function EmployeeDirectoryPage() {
                     <div className="text-sm text-gray-500">
                         Total: <span className="font-bold text-gray-900">{employees.length}</span>
                     </div>
+                    <BulkAddEmployeesModal onSuccess={fetchEmployees} />
                     <AddEmployeeModal onSuccess={fetchEmployees} />
                 </div>
             </div>
+
 
             {/* Search Bar */}
             <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
