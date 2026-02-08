@@ -31,24 +31,7 @@ export default function SignupPage() {
             if (authError) throw authError;
 
             if (authData.user) {
-                // 2. Create employee record (Default to 'Recruiter', Admin must upgrade)
-                // Note: This relies on RLS policies allowing insert. 
-                // If RLS blocks this, you need a Trigger or Admin API.
-                // For this internal setup, we'll try direct insert.
-                // If it fails, we fall back to manual SQL script.
-                const { error: dbError } = await supabase
-                    .from('employees')
-                    .insert({
-                        id: authData.user.id,
-                        name: name,
-                        role: 'recruiter' // Default role
-                    });
-
-                if (dbError) {
-                    console.error('DB Error:', dbError);
-                    // Verify if trigger exists or ignore if handled by database trigger
-                }
-
+                // 2. Employee record is now created automatically via Database Trigger
                 setSuccess(true);
             }
         } catch (err: any) {
