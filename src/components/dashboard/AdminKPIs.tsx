@@ -18,10 +18,12 @@ export default function AdminKPIs() {
         const fetchStats = async () => {
             try {
                 // 1. Active Projects
-                const { count: activeCount } = await supabase
+                // 1. Active Projects
+                const { data: activeProjectsData } = await supabase
                     .from('projects')
-                    .select('*', { count: 'exact', head: true })
+                    .select('id')
                     .eq('status', 'Active');
+                const activeCount = activeProjectsData?.length || 0;
 
                 // 2. Total Joined
                 const { count: joinedCount } = await supabase

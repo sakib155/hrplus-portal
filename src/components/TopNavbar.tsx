@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useState } from 'react';
 import { LogOut, Menu, X, LayoutDashboard, Briefcase, Users, User } from 'lucide-react';
+import NotificationBell from './notifications/NotificationBell';
 
 export default function TopNavbar() {
     const { user, signOut, isAdmin, isRecruiter } = useAuth();
@@ -70,6 +71,7 @@ export default function TopNavbar() {
                     </div>
                     <div className="hidden sm:ml-6 sm:flex sm:items-center">
                         <div className="ml-3 relative flex items-center space-x-4">
+                            <NotificationBell />
                             <div className="flex flex-col text-right">
                                 <span className="text-sm font-medium text-gray-900">{user?.name}</span>
                                 <span className="text-xs text-gray-500 capitalize">{user?.role}</span>

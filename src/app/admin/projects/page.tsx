@@ -15,6 +15,7 @@ interface Project {
     openings: number;
     status: string;
     created_at: string;
+    revenue_amount: number;
 }
 
 export default function AdminProjectsPage() {
@@ -69,6 +70,7 @@ export default function AdminProjectsPage() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Title</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -87,6 +89,9 @@ export default function AdminProjectsPage() {
                                                     'bg-yellow-100 text-yellow-800'}`}>
                                             {project.status}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                        ${(project.revenue_amount || 0).toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {format(new Date(project.created_at), 'MMM d, yyyy')}

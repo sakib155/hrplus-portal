@@ -65,19 +65,22 @@ export async function middleware(request: NextRequest) {
     // IMPORTANT: specific to Supabase Auth which does not update the cookie in the
     // request itself, so we need to pass the modified request to the next step.
 
-    // Using getSession() instead of getUser() for performance in Middleware.
-    // getUser() forces a network call which can be very slow (10s+) on some local environments.
-    // Security is enforced by RLS and Server Components, so this optimistic check is acceptable for routing.
-    const { data: { session } } = await supabase.auth.getSession()
 
-    // If there's an error (e.g. invalid token), user will be null, so we redirect to login
-    if (isProtectedRoute && !session) {
-        return NextResponse.redirect(new URL('/login', request.url))
+    // OPTIMIZATION:
+    // Only fetch session for protected routes or if we really need to check auth state.
+    // For specific public routes like /login, checking session server-side can be slow (network call).
+    // We defer the "redirect if logged in" logic to the client-side for better perceived performance.
+
+    if (isProtectedRoute) {
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!session) {
+            return NextResponse.redirect(new URL('/login', request.url))
+        }
     }
 
-    if (isAuthRoute && session) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
+    // For Auth Routes (Login/Signup), we skip the server-side redirect check to avoid the delay.
+    // The client-side component will handle the redirect if the user is already logged in.
 
     return response
 }

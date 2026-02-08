@@ -21,51 +21,62 @@ export default function RecruiterPerformance() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                // 1. Fetch all recruiters
-                const { data: recruiters, error: rError } = await supabase
-                    .from('employees')
-                    .select('id, name')
-                    .eq('role', 'recruiter');
-
-                if (rError) throw rError;
-
-                if (!recruiters || recruiters.length === 0) {
-                    setStats([]);
-                    return;
-                }
-
-                // 2. Fetch stats for each recruiter parallelly
-                const statsPromises = recruiters.map(async (recruiter) => {
-                    // Count Projects
-                    const { count: projectCount } = await supabase
+                // Fetch all data in parallel
+                const [recruitersResponse, projectsResponse, candidatesResponse] = await Promise.all([
+                    supabase
+                        .from('employees')
+                        .select('id, name')
+                        .in('role', ['recruiter', 'admin', 'lead']),
+                    supabase
                         .from('project_recruiters')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('recruiter_id', recruiter.id);
-
-                    // Count Candidates
-                    const { count: candidateCount } = await supabase
+                        .select('recruiter_id'),
+                    supabase
                         .from('candidates')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('recruiter_id', recruiter.id);
+                        .select('recruiter_id, status')
+                ]);
 
-                    // Count Joined
-                    const { count: joinedCount } = await supabase
-                        .from('candidates')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('recruiter_id', recruiter.id)
-                        .eq('status', 'Joined');
+                if (recruitersResponse.error) throw recruitersResponse.error;
+                if (projectsResponse.error) throw projectsResponse.error;
+                if (candidatesResponse.error) throw candidatesResponse.error;
 
-                    return {
-                        id: recruiter.id,
-                        name: recruiter.name,
-                        project_count: projectCount || 0,
-                        candidate_count: candidateCount || 0,
-                        joined_count: joinedCount || 0,
-                    };
+                const recruiters = recruitersResponse.data || [];
+                const projects = projectsResponse.data || [];
+                const candidates = candidatesResponse.data || [];
+
+                // Aggregate stats in memory
+                const statsMap = new Map<string, RecruiterStats>();
+
+                // Initialize map
+                recruiters.forEach(r => {
+                    statsMap.set(r.id, {
+                        id: r.id,
+                        name: r.name,
+                        project_count: 0,
+                        candidate_count: 0,
+                        joined_count: 0
+                    });
                 });
 
-                const results = await Promise.all(statsPromises);
-                setStats(results);
+                // Count Projects
+                projects.forEach((p: any) => {
+                    const rec = statsMap.get(p.recruiter_id);
+                    if (rec) {
+                        rec.project_count++;
+                    }
+                });
+
+                // Count Candidates & Joined
+                candidates.forEach((c: any) => {
+                    const rec = statsMap.get(c.recruiter_id);
+                    if (rec) {
+                        rec.candidate_count++;
+                        if (c.status === 'Joined') {
+                            rec.joined_count++;
+                        }
+                    }
+                });
+
+                setStats(Array.from(statsMap.values()));
 
             } catch (error) {
                 console.error('Error fetching performance:', error);

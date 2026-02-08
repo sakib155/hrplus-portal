@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/components/AuthProvider';
 import Link from 'next/link';
+import { FileText, History } from 'lucide-react';
+import ProjectLogModal from '../projects/ProjectLogModal';
+import ProjectLogHistoryModal from '../projects/ProjectLogHistoryModal';
 
 interface Project {
     id: string;
@@ -17,6 +20,8 @@ export default function RecruiterProjectList() {
     const { user } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
+    const [logProject, setLogProject] = useState<{ id: string, title: string } | null>(null);
+    const [viewHistoryProject, setViewHistoryProject] = useState<{ id: string, title: string } | null>(null);
     const supabase = createClient();
 
     useEffect(() => {
@@ -99,6 +104,7 @@ export default function RecruiterProjectList() {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Date</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -119,10 +125,53 @@ export default function RecruiterProjectList() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {new Date(project.assigned_at).toLocaleDateString()}
                             </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div className="flex justify-end gap-2">
+                                    <button
+                                        onClick={() => setViewHistoryProject({ id: project.id, title: project.project_title })}
+                                        className="text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                                        title="View History"
+                                    >
+                                        <History className="h-4 w-4" />
+                                        History
+                                    </button>
+                                    <button
+                                        onClick={() => setLogProject({ id: project.id, title: project.project_title })}
+                                        className="text-indigo-600 hover:text-indigo-900 flex items-center gap-1"
+                                        title="Add Daily Log"
+                                    >
+                                        <FileText className="h-4 w-4" />
+                                        Add Log
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
-        </div>
+
+            {
+                logProject && user && (
+                    <ProjectLogModal
+                        isOpen={!!logProject}
+                        onClose={() => setLogProject(null)}
+                        projectId={logProject.id}
+                        projectName={logProject.title}
+                        recruiterId={user.id}
+                    />
+                )
+            }
+
+            {
+                viewHistoryProject && (
+                    <ProjectLogHistoryModal
+                        isOpen={!!viewHistoryProject}
+                        onClose={() => setViewHistoryProject(null)}
+                        projectId={viewHistoryProject.id}
+                        projectName={viewHistoryProject.title}
+                    />
+                )
+            }
+        </div >
     );
 }

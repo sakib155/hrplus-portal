@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import { format } from 'date-fns';
-import { ExternalLink, Edit2, Lock } from 'lucide-react';
+import { ExternalLink, Edit2, Lock, Clock } from 'lucide-react';
 import CandidateStatusModal from './CandidateStatusModal';
+import FollowUpModal from '../followups/FollowUpModal';
 
 interface Candidate {
     id: string;
@@ -22,7 +23,15 @@ export default function CandidateList({ projectId }: { projectId: string }) {
     const [candidates, setCandidates] = useState<Candidate[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+    const [followUpCandidate, setFollowUpCandidate] = useState<Candidate | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const supabase = createClient();
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) setCurrentUserId(user.id);
+        });
+    }, [supabase]);
 
     const fetchCandidates = async () => {
         setLoading(true);
@@ -77,6 +86,13 @@ export default function CandidateList({ projectId }: { projectId: string }) {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button
+                                    onClick={() => setFollowUpCandidate(c)}
+                                    className="text-blue-600 hover:text-blue-900 mr-3"
+                                    title="Schedule Follow-up"
+                                >
+                                    <Clock className="h-4 w-4" />
+                                </button>
+                                <button
                                     onClick={() => setSelectedCandidate(c)}
                                     className="text-indigo-600 hover:text-indigo-900"
                                 >
@@ -93,11 +109,22 @@ export default function CandidateList({ projectId }: { projectId: string }) {
                 </tbody>
             </table>
 
+
             {selectedCandidate && (
                 <CandidateStatusModal
                     candidate={selectedCandidate}
                     onClose={() => setSelectedCandidate(null)}
                     onUpdate={fetchCandidates}
+                />
+            )}
+
+            {followUpCandidate && (
+                <FollowUpModal
+                    isOpen={!!followUpCandidate}
+                    onClose={() => setFollowUpCandidate(null)}
+                    candidateId={followUpCandidate.id}
+                    candidateName={followUpCandidate.name}
+                    recruiterId={followUpCandidate.recruiter_id || currentUserId || ''}
                 />
             )}
         </div>
