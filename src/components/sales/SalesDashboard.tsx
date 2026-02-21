@@ -3,8 +3,11 @@ import LeadList from '../marketing/LeadList';
 import { LayoutDashboard, Plus } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import AddLeadModal from '../marketing/AddLeadModal';
+import SalesKPIs from './SalesKPIs';
+import SalesActionRequiredPanel from './SalesActionRequiredPanel';
+import ContractTrackerPanel from './ContractTrackerPanel';
 
-export default function SalesDashboard() {
+export default function SalesDashboard({ readOnly = false }: { readOnly?: boolean }) {
     const { isSalesLead, user } = useAuth();
     const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
     // Sales Reps sees their assigned leads (enforced by RLS)
@@ -23,7 +26,7 @@ export default function SalesDashboard() {
                             : `Welcome back, ${user?.name}. Here are your assigned leads.`}
                     </p>
                 </div>
-                {isSalesLead && (
+                {isSalesLead && !readOnly && (
                     <button
                         onClick={() => setIsAddLeadOpen(true)}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
@@ -34,12 +37,21 @@ export default function SalesDashboard() {
                 )}
             </div>
 
+            <SalesKPIs />
+
+            {/* HIGH PRIORITY: Action Required Strip */}
+            <SalesActionRequiredPanel readOnly={readOnly} />
+
+            {/* Contract Tracking */}
+            <ContractTrackerPanel readOnly={readOnly} />
+
+            {/* Standard Tracker */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                     <LayoutDashboard className="h-5 w-5 mr-2 text-blue-600" />
-                    {isSalesLead ? 'All Active Leads' : 'My Assigned Leads'}
+                    {isSalesLead || readOnly ? 'All Active Leads' : 'My Active Leads'}
                 </h3>
-                <LeadList />
+                <LeadList readOnly={readOnly} />
             </div>
 
             <AddLeadModal

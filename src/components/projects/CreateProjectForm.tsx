@@ -19,7 +19,14 @@ const projectSchema = z.object({
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
 
-export default function CreateProjectForm({ onSuccess }: { onSuccess?: () => void }) {
+interface CreateProjectFormProps {
+    onSuccess?: () => void;
+    initialClientName?: string;
+    initialLeadId?: string;
+    onCancel?: () => void;
+}
+
+export default function CreateProjectForm({ onSuccess, initialClientName = '', initialLeadId, onCancel }: CreateProjectFormProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
@@ -28,6 +35,7 @@ export default function CreateProjectForm({ onSuccess }: { onSuccess?: () => voi
     const { register, handleSubmit, formState: { errors }, reset } = useForm<ProjectFormValues>({
         resolver: zodResolver(projectSchema) as any,
         defaultValues: {
+            client_name: initialClientName,
             openings: 1,
             revenue_amount: 0,
         }
@@ -44,7 +52,7 @@ export default function CreateProjectForm({ onSuccess }: { onSuccess?: () => voi
 
             const projectTitle = `${data.client_name} – ${data.position_title}`;
 
-            const { error: insertError } = await supabase
+            const { data: newProject, error: insertError } = await supabase
                 .from('projects')
                 .insert({
                     client_name: data.client_name,
@@ -54,10 +62,39 @@ export default function CreateProjectForm({ onSuccess }: { onSuccess?: () => voi
                     revenue_amount: data.revenue_amount || 0,
                     target_close_date: data.target_close_date || null,
                     notes: data.notes,
-                    created_by: user.id
-                });
+                    created_by: user.id,
+                    lead_id: initialLeadId || null
+                })
+                .select()
+                .single();
 
             if (insertError) throw insertError;
+
+            // System Hardening Phase 2: Automate Handover Context Injection
+            if (initialLeadId && newProject) {
+                try {
+                    const { data: leadData } = await supabase
+                        .from('leads')
+                        .select('contact_person, followup_note')
+                        .eq('id', initialLeadId)
+                        .single();
+
+                    const handoverContent = `🎯 Project Converted from Lead\n👤 Contact Person: ${leadData?.contact_person || 'Not provided'}\n\n📝 Sales Handover Notes:\n${leadData?.followup_note || 'No notes provided by Sales.'}`;
+
+                    await supabase
+                        .from('project_logs')
+                        .insert({
+                            project_id: newProject.id,
+                            recruiter_id: user.id,
+                            content: handoverContent,
+                            type: 'Log',
+                            status: 'Completed',
+                            log_date: new Date().toISOString()
+                        });
+                } catch (logErr) {
+                    console.error('Failed to create handover log:', logErr);
+                }
+            }
 
             reset();
             router.refresh(); // Refresh server data if any
@@ -148,7 +185,16 @@ export default function CreateProjectForm({ onSuccess }: { onSuccess?: () => voi
                 />
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end space-x-3">
+                {onCancel && (
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                        Cancel
+                    </button>
+                )}
                 <button
                     type="submit"
                     disabled={loading}

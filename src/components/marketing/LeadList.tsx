@@ -4,8 +4,9 @@ import { Edit, Trash2, Phone, Mail, MapPin, Calendar, ExternalLink, Eye, Message
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import LeadDetailModal from './LeadDetailModal';
-
 import AddLeadModal from './AddLeadModal';
+import ConvertLeadModal from './ConvertLeadModal';
+import LogFollowUpModal from './LogFollowUpModal';
 
 interface Lead {
     id: string;
@@ -23,11 +24,13 @@ interface Lead {
 
 // ... interfaces ...
 
-export default function LeadList() {
+export default function LeadList({ readOnly = false }: { readOnly?: boolean }) {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
     const [editingLead, setEditingLead] = useState<Lead | null>(null);
+    const [convertingLead, setConvertingLead] = useState<Lead | null>(null);
+    const [loggingLead, setLoggingLead] = useState<Lead | null>(null);
     const supabase = createClient();
 
     useEffect(() => {
@@ -98,7 +101,7 @@ export default function LeadList() {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Next Follow-up</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            {!readOnly && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -115,8 +118,8 @@ export default function LeadList() {
                                         <div className="text-sm font-medium text-gray-900">{lead.company_name}</div>
                                         {lead.priority && (
                                             <span className={`text-xs font-semibold ${lead.priority === 'High' ? 'text-red-600' :
-                                                    lead.priority === 'Medium' ? 'text-yellow-600' :
-                                                        'text-green-600'
+                                                lead.priority === 'Medium' ? 'text-yellow-600' :
+                                                    'text-green-600'
                                                 }`}>
                                                 {lead.priority} Priority
                                             </span>
@@ -139,7 +142,7 @@ export default function LeadList() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {lead.next_followup_date ? (
-                                            <div className="flex items-center text-orange-600">
+                                            <div className={`flex items-center ${new Date(lead.next_followup_date) < new Date(new Date().setHours(0, 0, 0, 0)) ? 'text-red-600 font-bold' : 'text-orange-600'}`}>
                                                 <Calendar className="h-3 w-3 mr-1" />
                                                 {format(new Date(lead.next_followup_date), 'MMM d, yyyy')}
                                             </div>
@@ -147,32 +150,48 @@ export default function LeadList() {
                                             <span className="text-gray-400">-</span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button
-                                            onClick={() => setSelectedLeadId(lead.id)}
-                                            className="text-blue-600 hover:text-blue-900 mr-3 inline-flex items-center"
-                                            title="View Details & Log Activity"
-                                        >
-                                            <MessageSquare className="h-4 w-4 mr-1" />
-                                            Log
-                                        </button>
-                                        <button
-                                            onClick={() => setEditingLead(lead)}
-                                            className="text-gray-400 hover:text-gray-600 mr-3"
-                                        >
-                                            <Edit className="h-4 w-4" />
-                                        </button>
+                                    {!readOnly && (
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button
+                                                onClick={() => setLoggingLead(lead)}
+                                                className="text-blue-600 hover:text-blue-900 mr-3 inline-flex items-center font-bold bg-blue-50 px-2 py-1 rounded"
+                                                title="Log Follow-Up Activity & Set Next Date"
+                                            >
+                                                <MessageSquare className="h-4 w-4 mr-1" />
+                                                Log
+                                            </button>
+                                            <button
+                                                onClick={() => setSelectedLeadId(lead.id)}
+                                                className="text-gray-500 hover:text-gray-700 mr-3"
+                                                title="View Details"
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => setEditingLead(lead)}
+                                                className="text-gray-400 hover:text-gray-600 mr-3"
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </button>
 
+                                            {(lead.status === 'Requirement Received' || lead.status === 'Converted') && (
+                                                <button
+                                                    onClick={() => setConvertingLead(lead)}
+                                                    className="text-indigo-600 hover:text-indigo-900 mr-3 font-semibold"
+                                                    title="Convert to Project"
+                                                >
+                                                    Convert
+                                                </button>
+                                            )}
 
-                                        // ...
-
-                                        <button
-                                            onClick={() => handleDelete(lead.id)}
-                                            className="text-red-400 hover:text-red-600"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
-                                    </td>
+                                            <button
+                                                onClick={() => handleDelete(lead.id)}
+                                                className="text-red-400 hover:text-red-600"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </td>
+                                    )}
                                 </tr>
                             ))
                         )}
@@ -195,6 +214,33 @@ export default function LeadList() {
                         setEditingLead(null);
                     }}
                     initialData={editingLead}
+                />
+            )}
+
+            {convertingLead && (
+                <ConvertLeadModal
+                    isOpen={!!convertingLead}
+                    onClose={() => setConvertingLead(null)}
+                    leadId={convertingLead.id}
+                    companyName={convertingLead.company_name}
+                    onSuccess={() => {
+                        toast.success('Project created and linked to lead!');
+                        fetchLeads();
+                        setConvertingLead(null);
+                    }}
+                />
+            )}
+
+            {loggingLead && (
+                <LogFollowUpModal
+                    isOpen={!!loggingLead}
+                    onClose={() => setLoggingLead(null)}
+                    leadId={loggingLead.id}
+                    companyName={loggingLead.company_name}
+                    onSuccess={() => {
+                        fetchLeads();
+                        setLoggingLead(null);
+                    }}
                 />
             )}
         </div>

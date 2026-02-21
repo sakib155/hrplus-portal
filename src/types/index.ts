@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'lead' | 'recruiter' | 'marketing' | 'sales' | 'sales_lead';
+export type Role = 'admin' | 'lead' | 'marketing' | 'sales' | 'recruiter' | 'sales_lead' | 'recruitment_lead';
 
 export interface UserProfile {
     id: string;
@@ -12,6 +12,7 @@ export interface AuthState {
     loading: boolean;
     isAdmin: boolean;
     isRecruiter: boolean;
+    isRecruitmentLead: boolean;
     isMarketing: boolean;
     isSales: boolean;
     isSalesLead: boolean;

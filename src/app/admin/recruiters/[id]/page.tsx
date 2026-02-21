@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabaseClient';
 import { Loader2, ArrowLeft, Mail, Briefcase, UserCheck } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import RecruiterTaskLog from '@/components/dashboard/RecruiterTaskLog';
 
 interface RecruiterDetails {
     id: string;
@@ -154,6 +155,9 @@ export default function RecruiterProfilePage() {
                     </div>
                 </div>
             </div>
+
+            {/* Assigned Tasks */}
+            <RecruiterTaskLog recruiterId={id} />
 
             {/* Assigned Projects Table */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">

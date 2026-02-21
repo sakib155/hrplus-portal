@@ -113,6 +113,7 @@ export default function CandidateList({ projectId }: { projectId: string }) {
             {selectedCandidate && (
                 <CandidateStatusModal
                     candidate={selectedCandidate}
+                    projectId={projectId}
                     onClose={() => setSelectedCandidate(null)}
                     onUpdate={fetchCandidates}
                 />

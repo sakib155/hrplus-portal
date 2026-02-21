@@ -9,6 +9,7 @@ import CandidateList from '@/components/candidates/CandidateList';
 import { format } from 'date-fns';
 import { useAuth } from '@/components/AuthProvider';
 import EditProjectModal from '@/components/projects/EditProjectModal';
+import ProjectActivityLog from '@/components/projects/ProjectActivityLog';
 
 interface ProjectDetails {
     id: string;
@@ -143,6 +144,9 @@ export default function ProjectDetailsPage() {
                     <p className="text-sm text-gray-500">No recruiters assigned yet.</p>
                 )}
             </div>
+
+            {/* Activity Logs Section */}
+            <ProjectActivityLog projectId={id} projectName={project.project_title} />
 
             {/* Candidates Section */}
             <div className="bg-white shadow rounded-lg p-6 border border-gray-100">

@@ -33,7 +33,7 @@ interface StatusFormValues {
     client_feedback_status?: string;
 }
 
-export default function CandidateStatusModal({ candidate, onClose, onUpdate }: { candidate: Candidate; onClose: () => void; onUpdate: () => void }) {
+export default function CandidateStatusModal({ candidate, projectId, onClose, onUpdate }: { candidate: Candidate; projectId: string; onClose: () => void; onUpdate: () => void }) {
     const [loading, setLoading] = useState(false);
     const { isAdmin } = useAuth();
     const supabase = createClient();
@@ -79,6 +79,25 @@ export default function CandidateStatusModal({ candidate, onClose, onUpdate }: {
                 .eq('id', candidate.id);
 
             if (error) throw error;
+
+            // System Hardening Phase 2: Automate Status Push to Activity Log
+            if (data.status !== candidate.status) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    try {
+                        await supabase.from('project_logs').insert({
+                            project_id: projectId,
+                            recruiter_id: user.id,
+                            content: `🔄 Candidate Update: ${data.name} moved from "${candidate.status}" to "${data.status}"`,
+                            type: 'Info',
+                            status: 'Completed',
+                            log_date: new Date().toISOString()
+                        });
+                    } catch (logErr) {
+                        console.error('Failed to auto-log status change:', logErr);
+                    }
+                }
+            }
 
             onUpdate();
             onClose();
