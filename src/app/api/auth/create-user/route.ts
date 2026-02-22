@@ -44,21 +44,20 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
         }
 
-        // 2. Insert into Employees Table
-        // The Admin Client can insert into 'employees' regardless of RLS, 
-        // BUT we need to ensure the schema allows it. 
-        // Our 'public.employees' table has RLS. The Service Role bypasses RLS.
+        // 2. Update the Employees Table
+        // The SQL trigger already created the base employee record, but it defaults to 'recruiter'.
+        // We update the row to reflect the explicitly requested Admin role.
         const { error: dbError } = await supabaseAdmin
             .from('employees')
-            .insert({
-                id: authData.user.id,
+            .update({
                 name: name,
                 role: role || 'recruiter'
-            });
+            })
+            .eq('id', authData.user.id);
 
         if (dbError) {
             // Rollback auth user? ideally yes, but for now just report error
-            return NextResponse.json({ error: 'User created but failed to create profile: ' + dbError.message }, { status: 500 });
+            return NextResponse.json({ error: 'User created but failed to apply profile data: ' + dbError.message }, { status: 500 });
         }
 
         return NextResponse.json({ success: true, user: authData.user });
