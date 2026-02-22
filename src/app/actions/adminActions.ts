@@ -50,11 +50,23 @@ export async function deleteUser(userId: string) {
     }
 
     try {
-        const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+        // First delete from the public.employees table to avoid foreign key constraint errors
+        const { error: dbError } = await supabaseAdmin
+            .from('employees')
+            .delete()
+            .eq('id', userId);
 
-        if (error) {
-            console.error('Error deleting user:', error);
-            throw new Error(error.message);
+        if (dbError) {
+            console.error('Error deleting employee record:', dbError);
+            throw new Error('Failed to delete employee profile');
+        }
+
+        // Then delete from auth.users
+        const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+        if (authError) {
+            console.error('Error deleting user auth:', authError);
+            throw new Error(authError.message);
         }
 
         revalidatePath('/admin/employees');
